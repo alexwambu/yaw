@@ -1,0 +1,6 @@
+streamlit
+moviepy
+gtts
+pillow
+python-docx
+PyPDF2
