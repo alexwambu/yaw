@@ -10,30 +10,31 @@ import os
 def assemble_full_movie(scenes, voice_clips, image_clips):
     clips = []
 
-    # Use system font path (common Linux-safe)
+    # Safe Linux font path (works on Streamlit Cloud with packages.txt)
     FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
     for i in range(len(scenes)):
-        # Load scene image
         img = ImageClip(image_clips[i]).set_duration(10)
 
-        # Label like (a), (b), (c), ...
+        # Label format: (a), (b), (c)...
         scene_label = f"({chr(97 + i)})"
 
-        # Text overlay for scene label
-        txt_clip = TextClip(scene_label, fontsize=40, color='white', font=FONT_PATH)
-        txt_clip = txt_clip.set_position(('center', 'bottom')).set_duration(10)
+        try:
+            txt_clip = TextClip(
+                scene_label,
+                fontsize=40,
+                color='white',
+                font=FONT_PATH
+            ).set_position(('center', 'bottom')).set_duration(10)
+        except Exception as e:
+            print(f"TextClip error: {e}")
+            txt_clip = None
 
-        # Combine image and label
-        video = CompositeVideoClip([img, txt_clip])
-
-        # Add voiceover audio
+        video = CompositeVideoClip([img, txt_clip] if txt_clip else [img])
         audio = AudioFileClip(voice_clips[i])
         video = video.set_audio(audio)
-
         clips.append(video)
 
-    # Concatenate all scenes into one final video
     movie = concatenate_videoclips(clips, method="compose")
     output_path = "storage/final_movie.mp4"
     movie.write_videofile(output_path, fps=24)
